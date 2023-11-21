@@ -2,7 +2,7 @@ import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
-import 'package:flutter_neumorphic/src/widget/container.dart';
+import 'package:gusto_neumorphic/src/widget/container.dart';
 
 /// Defines default colors used in Neumorphic theme & shadows generators
 @immutable

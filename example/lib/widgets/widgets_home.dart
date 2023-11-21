@@ -1,7 +1,7 @@
 import 'package:example/lib/top_bar.dart';
 import 'package:example/widgets/appbar/widget_app_bar.dart';
 import 'package:example/widgets/toggle/widget_toggle.dart';
-import 'package:flutter_neumorphic/flutter_neumorphic.dart';
+import 'package:gusto_neumorphic/gusto_neumorphic.dart';
 
 import 'background/widget_background.dart';
 import 'button/widget_button.dart';

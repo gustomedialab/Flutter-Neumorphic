@@ -1,4 +1,4 @@
-import '../../flutter_neumorphic.dart';
+import '../../gusto_neumorphic.dart';
 
 export 'inherited_neumorphic_theme.dart';
 export 'theme.dart';

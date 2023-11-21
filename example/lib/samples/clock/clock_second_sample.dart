@@ -1,5 +1,5 @@
 import 'package:example/lib/top_bar.dart';
-import 'package:flutter_neumorphic/flutter_neumorphic.dart';
+import 'package:gusto_neumorphic/gusto_neumorphic.dart';
 
 class ClockAlarmPage extends StatelessWidget {
   @override

@@ -1,6 +1,6 @@
 import 'dart:ui';
 
-import '../../flutter_neumorphic.dart';
+import '../../gusto_neumorphic.dart';
 
 export '../colors.dart';
 export '../light_source.dart';

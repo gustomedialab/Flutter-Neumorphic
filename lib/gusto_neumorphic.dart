@@ -1,4 +1,4 @@
-library flutter_neumorphic;
+library gusto_neumorphic;
 
 export 'package:flutter/material.dart'
     show
@@ -7,6 +7,7 @@ export 'package:flutter/material.dart'
         RouteFactory,
         GenerateAppTitle,
         InitialRouteListFactory;
+export 'package:flutter/material.dart';
 export 'package:flutter/widgets.dart';
 
 export 'src/colors.dart';
@@ -24,6 +25,7 @@ export 'src/widget/button.dart';
 export 'src/widget/checkbox.dart';
 export 'src/widget/close_button.dart';
 export 'src/widget/container.dart';
+export 'src/widget/floating_action_button.dart';
 export 'src/widget/icon.dart';
 export 'src/widget/indicator.dart';
 export 'src/widget/progress.dart';
@@ -33,6 +35,3 @@ export 'src/widget/slider.dart';
 export 'src/widget/switch.dart';
 export 'src/widget/text.dart';
 export 'src/widget/toggle.dart';
-export 'src/widget/floating_action_button.dart';
-
-export 'package:flutter/material.dart';

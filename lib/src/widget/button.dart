@@ -1,5 +1,5 @@
 import 'package:flutter/services.dart';
-import 'package:flutter_neumorphic/flutter_neumorphic.dart';
+import 'package:gusto_neumorphic/gusto_neumorphic.dart';
 
 import 'animation/animated_scale.dart' as animationScale;
 

@@ -44,7 +44,6 @@ class ColorSelector extends StatelessWidget {
               child: ColorPicker(
                 pickerColor: color,
                 onColorChanged: this.onColorChanged,
-                showLabel: true,
                 pickerAreaHeightPercent: 0.8,
               ),
             ),

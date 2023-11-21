@@ -1,4 +1,4 @@
-import '../../../flutter_neumorphic.dart';
+import '../../../gusto_neumorphic.dart';
 import 'abstract_neumorphic_painter_cache.dart';
 
 class NeumorphicEmbossPainterCache

@@ -1,4 +1,4 @@
-import '../../flutter_neumorphic.dart';
+import '../../gusto_neumorphic.dart';
 
 export '../decoration/neumorphic_decorations.dart';
 export '../neumorphic_box_shape.dart';

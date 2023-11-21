@@ -1,3 +1,6 @@
+## 3.3.0
+* Fixed issues with Flutter SDK, tested on 3.16.0
+
 ## 3.2.0
 
 * Remove generated localization class ([#215](https://github.com/Idean/Flutter-Neumorphic/pull/215))

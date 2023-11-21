@@ -1,4 +1,4 @@
-import 'package:flutter_neumorphic/flutter_neumorphic.dart';
+import 'package:gusto_neumorphic/gusto_neumorphic.dart';
 
 class WidgetsSample extends StatefulWidget {
   WidgetsSample({Key? key}) : super(key: key);

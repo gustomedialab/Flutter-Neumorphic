@@ -4,7 +4,7 @@ import 'package:example/lib/Code.dart';
 import 'package:example/lib/ThemeConfigurator.dart';
 import 'package:example/lib/color_selector.dart';
 import 'package:example/lib/top_bar.dart';
-import 'package:flutter_neumorphic/flutter_neumorphic.dart';
+import 'package:gusto_neumorphic/gusto_neumorphic.dart';
 
 class IndicatorWidgetPage extends StatefulWidget {
   IndicatorWidgetPage({Key? key}) : super(key: key);

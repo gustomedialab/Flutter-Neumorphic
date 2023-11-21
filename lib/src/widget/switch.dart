@@ -1,7 +1,7 @@
-import 'package:flutter_neumorphic/src/widget/animation/animated_scale.dart'
+import 'package:gusto_neumorphic/src/widget/animation/animated_scale.dart'
     as animationScale;
 
-import '../../flutter_neumorphic.dart';
+import '../../gusto_neumorphic.dart';
 
 /// A style to customize the [NeumorphicSwitch]
 ///
