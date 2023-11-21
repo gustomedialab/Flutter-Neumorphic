@@ -1,17 +1,16 @@
 import 'package:example/lib/Code.dart';
 import 'package:example/lib/ThemeConfigurator.dart';
 import 'package:example/lib/top_bar.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_neumorphic/flutter_neumorphic.dart';
 
-class TipsRecursiveeEmbossPage extends StatefulWidget {
-  TipsRecursiveeEmbossPage({Key key}) : super(key: key);
+class TipsRecursiveEmbossPage extends StatefulWidget {
+  TipsRecursiveEmbossPage({Key? key}) : super(key: key);
 
   @override
   createState() => _WidgetPageState();
 }
 
-class _WidgetPageState extends State<TipsRecursiveeEmbossPage> {
+class _WidgetPageState extends State<TipsRecursiveEmbossPage> {
   @override
   Widget build(BuildContext context) {
     return NeumorphicTheme(
@@ -88,14 +87,16 @@ class _EmbossmbossWidgetState extends State<_EmbossmbossWidget> {
   }
 
   Widget _generateEmbosss(
-      {int number, Widget child, bool reverseEachPair = false}) {
+      {required int number,
+      required Widget child,
+      bool reverseEachPair = false}) {
     Widget element = child;
     for (int i = 0; i < number; ++i) {
       element = Neumorphic(
         padding: EdgeInsets.all(20),
         style: NeumorphicStyle(
           boxShape: NeumorphicBoxShape.circle(),
-          depth: -(NeumorphicTheme.depth(context).abs()), //force negative
+          depth: -(NeumorphicTheme.depth(context)!.abs()), //force negative
           oppositeShadowLightSource: (reverseEachPair && i % 2 == 0),
         ),
         child: element,

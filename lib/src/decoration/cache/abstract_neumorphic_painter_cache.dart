@@ -1,20 +1,24 @@
 import 'dart:math';
-import 'dart:ui';
 
 import '../../../flutter_neumorphic.dart';
 
 abstract class AbstractNeumorphicEmbossPainterCache {
   Offset? _cacheOffset;
+
   Offset get originOffset => _cacheOffset ?? Offset.zero;
 
   double? _cacheWidth;
+
   double get width => _cacheWidth ?? 0;
   double? _cacheHeight;
+
   double get height => _cacheHeight ?? 0;
   double? _cacheRadius;
+
   double get cacheRadius => _cacheRadius ?? 0;
 
   Rect? _layerRect;
+
   Rect? get layerRect => _layerRect;
 
   AbstractNeumorphicEmbossPainterCache();
@@ -61,7 +65,9 @@ abstract class AbstractNeumorphicEmbossPainterCache {
   }
 
   Offset? _depthOffset;
+
   Offset get depthOffset => _depthOffset ?? Offset.zero;
+
   void updateDepthOffset() {
     if (_depth != null) {
       _depthOffset = this.lightSource.offset.scale(_depth!, _depth!);
@@ -69,7 +75,9 @@ abstract class AbstractNeumorphicEmbossPainterCache {
   }
 
   Color? _cacheColor;
+
   Color get backgroundColor => _cacheColor ?? Colors.transparent;
+
   bool updateStyleColor(Color newColor) {
     if (_cacheColor != newColor) {
       _cacheColor = newColor;
@@ -118,7 +126,9 @@ abstract class AbstractNeumorphicEmbossPainterCache {
   }
 
   MaskFilter? _maskFilterBlur;
+
   MaskFilter? get maskFilterBlur => _maskFilterBlur;
+
   void _updateMaskFilter({required double newDepth}) {
     this._maskFilterBlur = MaskFilter.blur(BlurStyle.normal, newDepth);
   }
@@ -126,9 +136,11 @@ abstract class AbstractNeumorphicEmbossPainterCache {
   double? _styleIntensity;
   Color? _styleShadowLightColor;
   Color? _shadowLightColor;
+
   Color? get shadowLightColor => _shadowLightColor;
   Color? _styleShadowDarkColor;
   Color? _shadowDarkColor;
+
   Color? get shadowDarkColor => _shadowDarkColor;
 
   Color generateShadowLightColor(
@@ -175,7 +187,9 @@ abstract class AbstractNeumorphicEmbossPainterCache {
 
   final List<Path> subPaths = [];
   Path? _path;
+
   Path get path => _path ?? Path();
+
   void updatePath({required Path newPath}) {
     this._path = newPath;
     subPaths.clear();
