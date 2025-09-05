@@ -1,3 +1,6 @@
+## 3.3.2
+* Fixed AppBarTheme to AppBarThemeData
+
 ## 3.3.0
 * Fixed issues with Flutter SDK, tested on 3.16.0
 
