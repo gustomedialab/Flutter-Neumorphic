@@ -1,6 +1,9 @@
 ## 4.0.0
 * BREAKING: Migrated from the bundled SDK Material library to the standalone `material_ui` package (Flutter 3.47+).
 * The package barrel now re-exports `package:material_ui/material_ui.dart` instead of `package:flutter/material.dart`.
+* BREAKING: `NeumorphicFloatingActionButton.child`/`onPressed` now use the `required` keyword (previously the advisory `@required` annotation).
+* Replaced deprecated APIs: `Color.withOpacity`/`Color.opacity` → `withValues`/`.a`, `Matrix4.scale` → `scaleByDouble`.
+* Replaced the broken test stub with real widget smoke tests (`flutter test` now passes).
 * Requires Flutter 3.47 / Dart 3.13 or later.
 
 ## 3.3.2

@@ -83,12 +83,6 @@ class __PageState extends State<_Page> {
   }
 
   Widget _configurators() {
-    final Color buttonActiveColor = Theme.of(context).colorScheme.secondary;
-    final Color buttonInnactiveColor = Colors.white;
-
-    final Color textActiveColor = Colors.white;
-    final Color textInactiveColor = Colors.black.withOpacity(0.3);
-
     return Column(
       children: <Widget>[
         styleCustomizer(),
@@ -248,7 +242,7 @@ class __PageState extends State<_Page> {
     final Color buttonInnactiveColor = Colors.white;
 
     final Color iconActiveColor = Colors.white;
-    final Color iconInactiveColor = Colors.black.withOpacity(0.3);
+    final Color iconInactiveColor = Colors.black.withValues(alpha: 0.3);
 
     return Row(
       mainAxisSize: MainAxisSize.max,

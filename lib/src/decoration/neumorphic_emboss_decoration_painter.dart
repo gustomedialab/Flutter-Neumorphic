@@ -130,7 +130,7 @@ class NeumorphicEmbossDecorationPainter extends BoxPainter {
 
   void _paintShadows(Canvas canvas, Path path) {
     final Matrix4 matrix4 = Matrix4.identity()
-      ..scale(_cache.scaleX, _cache.scaleY);
+      ..scaleByDouble(_cache.scaleX, _cache.scaleY, 1, 1);
 
     canvas
       ..saveLayer(_cache.layerRect, _whiteShadowPaint)
