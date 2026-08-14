@@ -5,6 +5,7 @@
 * Replaced deprecated APIs: `Color.withOpacity`/`Color.opacity` → `withValues`/`.a`, `Matrix4.scale` → `scaleByDouble`.
 * Replaced the broken test stub with real widget smoke tests (`flutter test` now passes).
 * Performance: cache the concave/convex gradient shader and the emboss shadow mask paths across paints (previously recreated every frame); remove stray debug prints from decoration lerp.
+* Performance: clip-based shadow rendering replaces the saveLayer + dstOut mask technique (four offscreen render passes per widget eliminated). Guarded by `NeumorphicShadowRendering.useClipPath` (default on). On-device (iPhone 15 Pro, profile mode, production data): median raster time during scroll 2.22ms -> 1.97ms (p50), 2.75ms -> 2.44ms (p90), ~11% faster; pixel parity with the legacy renderer verified to max channel delta 4/255.
 * Requires Flutter 3.47 / Dart 3.13 or later.
 
 ## 3.3.2

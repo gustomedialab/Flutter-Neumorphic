@@ -15,5 +15,9 @@ class NeumorphicShadowRendering {
 
   /// When true (default), shadows render via clip paths instead of
   /// saveLayer+dstOut masks. Set to false to restore the legacy renderer.
-  static bool useClipPath = true;
+  ///
+  /// Can be flipped at build time for on-device A/B profiling:
+  /// `flutter run --profile --dart-define=NEU_SHADOW_CLIP=false ...`
+  static bool useClipPath =
+      const bool.fromEnvironment('NEU_SHADOW_CLIP', defaultValue: true);
 }
