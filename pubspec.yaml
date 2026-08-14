@@ -1,6 +1,6 @@
 name: gusto_neumorphic
 description: A complete, ready to use, Neumorphic ui kit for Flutter. Dark theming compatible & fully customizable.
-version: 3.3.2
+version: 4.0.0
 #authors: [
 #  Florent Champigny <champigny.florent@gmail.com>,
 #  Olivier Bonvila <olivier.bonvila@idean.com>,
@@ -10,12 +10,14 @@ homepage: https://github.com/gustomedialab/Flutter-Neumorphic
 issue_tracker: https://github.com/gustomedialab/Flutter-Neumorphic/issues
 
 environment:
-  sdk: '>=3.2.0 <4.0.0'
+  sdk: '>=3.13.0 <4.0.0'
+  flutter: '>=3.47.0'
 
 dependencies:
   flutter:
     sdk: flutter
 
+  material_ui: ^1.0.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
