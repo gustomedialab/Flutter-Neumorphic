@@ -4,6 +4,7 @@
 * BREAKING: `NeumorphicFloatingActionButton.child`/`onPressed` now use the `required` keyword (previously the advisory `@required` annotation).
 * Replaced deprecated APIs: `Color.withOpacity`/`Color.opacity` → `withValues`/`.a`, `Matrix4.scale` → `scaleByDouble`.
 * Replaced the broken test stub with real widget smoke tests (`flutter test` now passes).
+* Performance: cache the concave/convex gradient shader and the emboss shadow mask paths across paints (previously recreated every frame); remove stray debug prints from decoration lerp.
 * Requires Flutter 3.47 / Dart 3.13 or later.
 
 ## 3.3.2

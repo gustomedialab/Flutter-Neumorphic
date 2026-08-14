@@ -102,8 +102,22 @@ class NeumorphicEmbossDecorationPainter extends BoxPainter {
 
     if (invalidateLightSource || invalidateDepth || invalidateSize) {
       _cache.updateTranslations();
+      _scaledSubPaths = null;
+    }
+
+    // Path.transform allocates a new engine path; rebuild the scaled shadow
+    // masks only when the source paths or scale factors change, not per frame.
+    if (_scaledSubPaths == null) {
+      final Matrix4 matrix4 = Matrix4.identity()
+        ..scaleByDouble(_cache.scaleX, _cache.scaleY, 1, 1);
+      _scaledSubPaths = [
+        for (final subPath in _cache.subPaths)
+          subPath.transform(matrix4.storage),
+      ];
     }
   }
+
+  List<Path>? _scaledSubPaths;
 
   void _paintBackground(Canvas canvas, Path path) {
     canvas
@@ -128,17 +142,14 @@ class NeumorphicEmbossDecorationPainter extends BoxPainter {
     }
   }
 
-  void _paintShadows(Canvas canvas, Path path) {
-    final Matrix4 matrix4 = Matrix4.identity()
-      ..scaleByDouble(_cache.scaleX, _cache.scaleY, 1, 1);
-
+  void _paintShadows(Canvas canvas, Path path, Path scaledPath) {
     canvas
       ..saveLayer(_cache.layerRect, _whiteShadowPaint)
       ..translate(_cache.originOffset.dx, _cache.originOffset.dy)
       ..drawPath(path, _whiteShadowPaint)
       ..translate(
           _cache.witheShadowLeftTranslation, _cache.witheShadowTopTranslation)
-      ..drawPath(path.transform(matrix4.storage), _whiteShadowMaskPaint)
+      ..drawPath(scaledPath, _whiteShadowMaskPaint)
       ..restore();
 
     canvas
@@ -147,7 +158,7 @@ class NeumorphicEmbossDecorationPainter extends BoxPainter {
       ..drawPath(path, _blackShadowPaint)
       ..translate(
           _cache.blackShadowLeftTranslation, _cache.blackShadowTopTranslation)
-      ..drawPath(path.transform(matrix4.storage), _blackShadowMaskPaint)
+      ..drawPath(scaledPath, _blackShadowMaskPaint)
       ..restore();
   }
 
@@ -155,7 +166,8 @@ class NeumorphicEmbossDecorationPainter extends BoxPainter {
   void paint(Canvas canvas, Offset offset, ImageConfiguration configuration) {
     _updateCache(
         offset: offset, configuration: configuration, newStyle: this.style);
-    for (var subPath in _cache.subPaths) {
+    for (var i = 0; i < _cache.subPaths.length; i++) {
+      final subPath = _cache.subPaths[i];
       if (drawBackground) {
         _paintBackground(canvas, subPath);
       }
@@ -165,7 +177,7 @@ class NeumorphicEmbossDecorationPainter extends BoxPainter {
       }
 
       if (drawShadow) {
-        _paintShadows(canvas, subPath);
+        _paintShadows(canvas, subPath, _scaledSubPaths![i]);
       }
     }
   }

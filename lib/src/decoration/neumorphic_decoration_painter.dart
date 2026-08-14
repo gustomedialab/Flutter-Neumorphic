@@ -195,20 +195,34 @@ class NeumorphicDecorationPainter extends BoxPainter {
     }
   }
 
+  // Gradient shader cache: creating a shader allocates engine resources, so
+  // only rebuild it when the inputs actually change (rect, intensity, source).
+  Rect? _lastGradientRect;
+  double? _lastGradientIntensity;
+  LightSource? _lastGradientSource;
+
   void _drawGradient(
       {required Canvas canvas, required Offset offset, required Path path}) {
     if (style.shape == NeumorphicShape.concave ||
         style.shape == NeumorphicShape.convex) {
       final pathRect = path.getBounds();
+      final source = style.shape == NeumorphicShape.concave
+          ? this.style.lightSource
+          : this.style.lightSource.invert();
 
-      _gradientPaint
-        ..shader = getGradientShader(
-          gradientRect: pathRect,
-          intensity: style.surfaceIntensity,
-          source: style.shape == NeumorphicShape.concave
-              ? this.style.lightSource
-              : this.style.lightSource.invert(),
-        );
+      if (pathRect != _lastGradientRect ||
+          style.surfaceIntensity != _lastGradientIntensity ||
+          source != _lastGradientSource) {
+        _lastGradientRect = pathRect;
+        _lastGradientIntensity = style.surfaceIntensity;
+        _lastGradientSource = source;
+        _gradientPaint
+          ..shader = getGradientShader(
+            gradientRect: pathRect,
+            intensity: style.surfaceIntensity,
+            source: source,
+          );
+      }
 
       canvas
         ..saveLayer(
