@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter/painting.dart';
 
 import '../neumorphic_box_shape.dart';
+import '../shadow_rendering.dart';
 import '../theme/theme.dart';
 import 'cache/neumorphic_painter_cache.dart';
 import 'neumorphic_box_decoration_helper.dart';
@@ -21,12 +22,21 @@ class NeumorphicDecorationPainter extends BoxPainter {
   late Paint _gradientPaint;
   late Paint _borderPaint;
 
+  // Clip-mode paints. The legacy renderer passes the shadow paint to BOTH
+  // saveLayer and drawPath, so its color alpha is applied twice (once when
+  // drawing, once when the layer is composited). The clip renderer draws
+  // once, so these paints carry the squared alpha to match.
+  late Paint _whiteClipShadowPaint;
+  late Paint _blackClipShadowPaint;
+
   void generatePainters() {
     this._backgroundPaint = Paint();
     this._whiteShadowPaint = Paint();
     this._whiteShadowMaskPaint = Paint()..blendMode = BlendMode.dstOut;
     this._blackShadowPaint = Paint();
     this._blackShadowMaskPaint = Paint()..blendMode = BlendMode.dstOut;
+    this._whiteClipShadowPaint = Paint();
+    this._blackClipShadowPaint = Paint();
     this._gradientPaint = Paint();
 
     this._borderPaint = Paint()
@@ -62,6 +72,7 @@ class NeumorphicDecorationPainter extends BoxPainter {
         _cache.updatePath(
             newPath:
                 shape.customShapePathProvider.getPath(configuration.size!));
+        _clipOutPaths = null;
       }
     }
 
@@ -85,6 +96,8 @@ class NeumorphicDecorationPainter extends BoxPainter {
       if (invalidateDepth) {
         _blackShadowPaint..maskFilter = _cache.maskFilterBlur;
         _whiteShadowPaint..maskFilter = _cache.maskFilterBlur;
+        _whiteClipShadowPaint..maskFilter = _cache.maskFilterBlur;
+        _blackClipShadowPaint..maskFilter = _cache.maskFilterBlur;
       }
     }
 
@@ -99,10 +112,14 @@ class NeumorphicDecorationPainter extends BoxPainter {
           );
       if (invalidateShadowColors) {
         if (_cache.shadowLightColor != null) {
-          _whiteShadowPaint..color = _cache.shadowLightColor!;
+          final c = _cache.shadowLightColor!;
+          _whiteShadowPaint..color = c;
+          _whiteClipShadowPaint..color = c.withValues(alpha: c.a * c.a);
         }
         if (_cache.shadowDarkColor != null) {
-          _blackShadowPaint..color = _cache.shadowDarkColor!;
+          final c = _cache.shadowDarkColor!;
+          _blackShadowPaint..color = c;
+          _blackClipShadowPaint..color = c.withValues(alpha: c.a * c.a);
         }
       }
     }
@@ -120,9 +137,19 @@ class NeumorphicDecorationPainter extends BoxPainter {
   void paint(Canvas canvas, Offset offset, ImageConfiguration configuration) {
     _updateCache(offset, configuration);
 
-    for (var subPath in _cache.subPaths) {
+    if (drawShadow && NeumorphicShadowRendering.useClipPath) {
+      _updateClipOutPaths(offset);
+    }
+
+    for (var i = 0; i < _cache.subPaths.length; i++) {
       if (drawShadow) {
-        _drawShadow(offset: offset, canvas: canvas, path: subPath);
+        _drawShadow(
+            offset: offset,
+            canvas: canvas,
+            path: _cache.subPaths[i],
+            clipOutPath: NeumorphicShadowRendering.useClipPath
+                ? _clipOutPaths![i]
+                : _cache.subPaths[i]);
       }
     }
 
@@ -172,9 +199,54 @@ class NeumorphicDecorationPainter extends BoxPainter {
       ..restore();
   }
 
+  // Clip-based shadow rendering: the legacy path erases the widget's own
+  // footprint out of the blurred shadow with a saveLayer + dstOut mask
+  // (an offscreen render pass per shadow). Clipping to "everything except
+  // the footprint" and drawing the blurred shadow once is equivalent for a
+  // hard-edged mask and needs no offscreen pass. One clip-out path per
+  // subpath, cached until the geometry changes.
+  List<Path>? _clipOutPaths;
+  Offset? _clipOutOffset;
+
+  void _updateClipOutPaths(Offset offset) {
+    if (_clipOutPaths == null || _clipOutOffset != offset) {
+      _clipOutOffset = offset;
+      final layerRectPath = Path()..addRect(_cache.layerRect ?? Rect.largest);
+      _clipOutPaths = [
+        for (final subPath in _cache.subPaths)
+          Path.combine(
+              PathOperation.difference, layerRectPath, subPath.shift(offset)),
+      ];
+    }
+  }
+
   void _drawShadow(
-      {required Canvas canvas, required Offset offset, required Path path}) {
+      {required Canvas canvas,
+      required Offset offset,
+      required Path path,
+      required Path clipOutPath}) {
     if (style.depth != null && style.depth!.abs() >= 0.1) {
+      if (NeumorphicShadowRendering.useClipPath) {
+        canvas
+          ..save()
+          ..clipRect(_cache.layerRect ?? Rect.largest)
+          ..clipPath(clipOutPath)
+          ..translate(offset.dx + _cache.depthOffset.dx,
+              offset.dy + _cache.depthOffset.dy)
+          ..drawPath(path, _whiteClipShadowPaint)
+          ..restore();
+
+        canvas
+          ..save()
+          ..clipRect(_cache.layerRect ?? Rect.largest)
+          ..clipPath(clipOutPath)
+          ..translate(offset.dx - _cache.depthOffset.dx,
+              offset.dy - _cache.depthOffset.dy)
+          ..drawPath(path, _blackClipShadowPaint)
+          ..restore();
+        return;
+      }
+
       canvas
         ..saveLayer(_cache.layerRect, _whiteShadowPaint)
         ..translate(offset.dx + _cache.depthOffset.dx,

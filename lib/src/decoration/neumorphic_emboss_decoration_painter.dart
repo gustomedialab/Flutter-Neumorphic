@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../neumorphic_box_shape.dart';
+import '../shadow_rendering.dart';
 import '../theme/theme.dart';
 import 'cache/neumorphic_emboss_painter_cache.dart';
 
@@ -18,6 +19,12 @@ class NeumorphicEmbossDecorationPainter extends BoxPainter {
   late Paint _blackShadowPaint;
   late Paint _blackShadowMaskPaint;
   late Paint _borderPaint;
+
+  // Clip-mode paints: the legacy renderer puts the blur on the dstOut mask
+  // inside a saveLayer; the clip renderer draws the blurred cutout
+  // complement directly, so these carry both the shadow color and the blur.
+  late Paint _whiteClipShadowPaint;
+  late Paint _blackClipShadowPaint;
 
   final bool drawShadow;
   final bool drawBackground;
@@ -40,6 +47,8 @@ class NeumorphicEmbossDecorationPainter extends BoxPainter {
     this._whiteShadowMaskPaint = Paint()..blendMode = BlendMode.dstOut;
     this._blackShadowPaint = Paint();
     this._blackShadowMaskPaint = Paint()..blendMode = BlendMode.dstOut;
+    this._whiteClipShadowPaint = Paint();
+    this._blackClipShadowPaint = Paint();
 
     this._borderPaint = Paint()
       ..strokeCap = StrokeCap.round
@@ -81,6 +90,8 @@ class NeumorphicEmbossDecorationPainter extends BoxPainter {
       if (invalidateDepth) {
         _blackShadowMaskPaint..maskFilter = _cache.maskFilterBlur;
         _whiteShadowMaskPaint..maskFilter = _cache.maskFilterBlur;
+        _whiteClipShadowPaint..maskFilter = _cache.maskFilterBlur;
+        _blackClipShadowPaint..maskFilter = _cache.maskFilterBlur;
       }
     }
 
@@ -92,11 +103,18 @@ class NeumorphicEmbossDecorationPainter extends BoxPainter {
           newIntensity: style.intensity ?? 0.25,
         );
     if (invalidateShadowColors) {
+      // In legacy mode the shadow paint is used for both saveLayer and
+      // drawPath, so its alpha applies twice; square it for the single-draw
+      // clip renderer.
       if (_cache.shadowLightColor != null) {
-        _whiteShadowPaint..color = _cache.shadowLightColor!;
+        final c = _cache.shadowLightColor!;
+        _whiteShadowPaint..color = c;
+        _whiteClipShadowPaint..color = c.withValues(alpha: c.a * c.a);
       }
       if (_cache.shadowDarkColor != null) {
-        _blackShadowPaint..color = _cache.shadowDarkColor!;
+        final c = _cache.shadowDarkColor!;
+        _blackShadowPaint..color = c;
+        _blackClipShadowPaint..color = c.withValues(alpha: c.a * c.a);
       }
     }
 
@@ -114,10 +132,36 @@ class NeumorphicEmbossDecorationPainter extends BoxPainter {
         for (final subPath in _cache.subPaths)
           subPath.transform(matrix4.storage),
       ];
+
+      // Clip-mode cutout complements: everything (within a generous rect)
+      // except the scaled shape at its shadow translation. Drawing this with
+      // a blurred paint, clipped to the shape, reproduces the soft inner
+      // shadow the legacy dstOut mask produced.
+      final coverRect = Rect.fromLTWH(0, 0, _cache.width, _cache.height)
+          .inflate(_cache.width + _cache.height);
+      final coverPath = Path()..addRect(coverRect);
+      _whiteCutoutPaths = [
+        for (final scaled in _scaledSubPaths!)
+          Path.combine(
+              PathOperation.difference,
+              coverPath,
+              scaled.shift(Offset(_cache.witheShadowLeftTranslation,
+                  _cache.witheShadowTopTranslation))),
+      ];
+      _blackCutoutPaths = [
+        for (final scaled in _scaledSubPaths!)
+          Path.combine(
+              PathOperation.difference,
+              coverPath,
+              scaled.shift(Offset(_cache.blackShadowLeftTranslation,
+                  _cache.blackShadowTopTranslation))),
+      ];
     }
   }
 
   List<Path>? _scaledSubPaths;
+  List<Path>? _whiteCutoutPaths;
+  List<Path>? _blackCutoutPaths;
 
   void _paintBackground(Canvas canvas, Path path) {
     canvas
@@ -142,7 +186,27 @@ class NeumorphicEmbossDecorationPainter extends BoxPainter {
     }
   }
 
-  void _paintShadows(Canvas canvas, Path path, Path scaledPath) {
+  void _paintShadows(Canvas canvas, Path path, Path scaledPath,
+      Path whiteCutout, Path blackCutout) {
+    if (NeumorphicShadowRendering.useClipPath) {
+      canvas
+        ..save()
+        ..clipRect(_cache.layerRect ?? Rect.largest)
+        ..translate(_cache.originOffset.dx, _cache.originOffset.dy)
+        ..clipPath(path)
+        ..drawPath(whiteCutout, _whiteClipShadowPaint)
+        ..restore();
+
+      canvas
+        ..save()
+        ..clipRect(_cache.layerRect ?? Rect.largest)
+        ..translate(_cache.originOffset.dx, _cache.originOffset.dy)
+        ..clipPath(path)
+        ..drawPath(blackCutout, _blackClipShadowPaint)
+        ..restore();
+      return;
+    }
+
     canvas
       ..saveLayer(_cache.layerRect, _whiteShadowPaint)
       ..translate(_cache.originOffset.dx, _cache.originOffset.dy)
@@ -177,7 +241,8 @@ class NeumorphicEmbossDecorationPainter extends BoxPainter {
       }
 
       if (drawShadow) {
-        _paintShadows(canvas, subPath, _scaledSubPaths![i]);
+        _paintShadows(canvas, subPath, _scaledSubPaths![i],
+            _whiteCutoutPaths![i], _blackCutoutPaths![i]);
       }
     }
   }

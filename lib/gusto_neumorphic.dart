@@ -4,6 +4,7 @@ export 'package:material_ui/material_ui.dart';
 export 'package:flutter/widgets.dart';
 
 export 'src/colors.dart';
+export 'src/shadow_rendering.dart';
 export 'src/neumorphic_box_shape.dart';
 export 'src/shape.dart';
 export 'src/shape/neumorphic_path_provider.dart';
