@@ -1,33 +1,43 @@
-# flutter_neumorphic
+# gusto_neumorphic
 
-A complete, ready to use, Neumorphic ui kit for Flutter
+A complete, ready to use, Neumorphic ui kit for Flutter — a maintained fork of
+[Flutter-Neumorphic](https://github.com/Idean/Flutter-Neumorphic).
 
-[![flutter_logo](https://github.com/Idean/Flutter-Neumorphic/blob/master/medias/flutter_logo_small.gif)](https://github.com/Idean/Flutter-Neumorphic)
-
-Try Flutter-Neumorphic on your browser : 👉 https://flutter-neumorphic.firebaseapp.com/ 🌐
-
-[![neumorphic_playground](https://github.com/Idean/Flutter-Neumorphic/blob/master/medias/playground.gif)](https://github.com/Idean/Flutter-Neumorphic)
+[![neumorphic_playground](https://github.com/Idean/Flutter-Neumorphic/blob/master/medias/playground.gif)](https://github.com/gustomedialab/Flutter-Neumorphic)
 
 # ⚙️ Installation
 
-https://pub.dev/packages/flutter_neumorphic
+https://pub.dev/packages/gusto_neumorphic
 
-[![pub package](https://img.shields.io/pub/v/flutter_neumorphic.svg)](
-https://pub.dartlang.org/packages/flutter_neumorphic)
-[![pub package](https://api.codemagic.io/apps/5e6113f78b547c3c80edbdb3/5e6113f78b547c3c80edbdb2/status_badge.svg)](https://github.com/Idean/Flutter-Neumorphic)
+[![pub package](https://img.shields.io/pub/v/gusto_neumorphic.svg)](
+https://pub.dev/packages/gusto_neumorphic)
 
-
-```dart
+```yaml
 dependencies:
-  flutter_neumorphic: ^3.0.3
+  gusto_neumorphic: ^4.0.0
 
-//requires flutter > 1.13.18
+# requires Flutter >= 3.47 / Dart >= 3.13
 ```
 
-The in your .dart files 
+Then in your .dart files
 ```dart
-import 'package:flutter_neumorphic/gusto_neumorphic.dart';
+import 'package:gusto_neumorphic/gusto_neumorphic.dart';
 ```
+
+## 4.0.0 highlights
+
+- Built on the standalone [`material_ui`](https://pub.dev/packages/material_ui)
+  package (Flutter 3.47+); the barrel re-exports `package:material_ui` instead
+  of the deprecated bundled SDK Material library.
+- Rendering performance rework: shadows draw without `saveLayer` offscreen
+  passes, shaders/paths/paragraphs are cached across frames. Pixel parity with
+  the previous renderer is guarded by in-repo A/B tests.
+- Escape hatch while the new renderer settles: set
+  `NeumorphicShadowRendering.useClipPath = false` (or build with
+  `--dart-define=NEU_SHADOW_CLIP=false`) to restore the legacy renderer.
+  The legacy path will be removed in 4.1.0.
+
+See [CHANGELOG.md](CHANGELOG.md) for the full list, including breaking changes.
 
 # 🗂 Widgets
 
