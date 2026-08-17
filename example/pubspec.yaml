@@ -26,6 +26,7 @@ dependencies:
 
   flutter_colorpicker: ^1.0.3
 
+  material_ui: any
 dev_dependencies:
   flutter_test:
     sdk: flutter

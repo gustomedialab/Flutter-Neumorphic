@@ -1,6 +1,6 @@
 import 'dart:ui' as ui show FontFeature;
 
-import 'package:flutter/material.dart' as material;
+import 'package:material_ui/material_ui.dart' as material;
 import 'package:gusto_neumorphic/src/decoration/neumorphic_text_decorations.dart';
 
 import '../../gusto_neumorphic.dart';

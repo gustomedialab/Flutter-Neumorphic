@@ -1,16 +1,10 @@
 library gusto_neumorphic;
 
-export 'package:flutter/material.dart'
-    show
-        TextTheme,
-        ThemeMode,
-        RouteFactory,
-        GenerateAppTitle,
-        InitialRouteListFactory;
-export 'package:flutter/material.dart';
+export 'package:material_ui/material_ui.dart';
 export 'package:flutter/widgets.dart';
 
 export 'src/colors.dart';
+export 'src/shadow_rendering.dart';
 export 'src/neumorphic_box_shape.dart';
 export 'src/shape.dart';
 export 'src/shape/neumorphic_path_provider.dart';

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class Code extends StatelessWidget {
   final String text;
@@ -9,10 +9,10 @@ class Code extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: EdgeInsets.all(8),
-      color: Colors.grey.withOpacity(0.2),
+      color: Colors.grey.withValues(alpha: 0.2),
       child: Text(
         text,
-        style: TextStyle(color: Colors.black.withOpacity(0.8)),
+        style: TextStyle(color: Colors.black.withValues(alpha: 0.8)),
       ),
     );
   }

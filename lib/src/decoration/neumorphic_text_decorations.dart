@@ -73,7 +73,6 @@ class NeumorphicTextDecoration extends Decoration {
   }
 
   NeumorphicTextDecoration scale(double factor) {
-    print("scale");
     return NeumorphicTextDecoration(
         textAlign: this.textAlign,
         isForeground: this.isForeground,
