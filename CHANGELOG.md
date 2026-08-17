@@ -1,3 +1,6 @@
+## 4.0.0+1
+* Docs: rewrite the README for the gusto_neumorphic fork (the published 4.0.0 still carried the upstream flutter_neumorphic README with a broken import snippet and stale install instructions).
+
 ## 4.0.1
 * Docs: rewrite the README for the gusto_neumorphic fork (the published 4.0.0 still carried the upstream flutter_neumorphic README with a broken import snippet and stale install instructions).
 
