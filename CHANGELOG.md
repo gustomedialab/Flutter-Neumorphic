@@ -1,9 +1,6 @@
 ## 4.0.0+1
 * Docs: rewrite the README for the gusto_neumorphic fork (the published 4.0.0 still carried the upstream flutter_neumorphic README with a broken import snippet and stale install instructions).
 
-## 4.0.1
-* Docs: rewrite the README for the gusto_neumorphic fork (the published 4.0.0 still carried the upstream flutter_neumorphic README with a broken import snippet and stale install instructions).
-
 ## 4.0.0
 * BREAKING: Migrated from the bundled SDK Material library to the standalone `material_ui` package (Flutter 3.47+).
 * The package barrel now re-exports `package:material_ui/material_ui.dart` instead of `package:flutter/material.dart`.
