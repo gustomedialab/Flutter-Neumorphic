@@ -126,6 +126,57 @@ void main() {
     );
   });
 
+  testWidgets('text flat depth 4 (opaque fill fast path)', (tester) async {
+    await compareRenderers(
+      tester,
+      'text-flat',
+      Center(
+        child: NeumorphicText(
+          'Harbour',
+          style: NeumorphicStyle(depth: 4, color: const Color(0xFF4A4A4A)),
+          textStyle: NeumorphicTextStyle(
+              fontSize: 36, fontWeight: FontWeight.w800),
+        ),
+      ),
+    );
+  });
+
+  testWidgets('text concave gradient', (tester) async {
+    await compareRenderers(
+      tester,
+      'text-concave',
+      Center(
+        child: NeumorphicText(
+          'Gusto',
+          style: NeumorphicStyle(
+            depth: 5,
+            shape: NeumorphicShape.concave,
+            color: const Color(0xFF4A4A4A),
+            surfaceIntensity: 0.6,
+          ),
+          textStyle: NeumorphicTextStyle(
+              fontSize: 36, fontWeight: FontWeight.w800),
+        ),
+      ),
+    );
+  });
+
+  testWidgets('text translucent fill (legacy shadow fallback)',
+      (tester) async {
+    await compareRenderers(
+      tester,
+      'text-translucent',
+      Center(
+        child: NeumorphicText(
+          'Ghost',
+          style: NeumorphicStyle(depth: 4, color: const Color(0x804A4A4A)),
+          textStyle: NeumorphicTextStyle(
+              fontSize: 36, fontWeight: FontWeight.w800),
+        ),
+      ),
+    );
+  });
+
   testWidgets('high intensity emboss stadium', (tester) async {
     await compareRenderers(
       tester,

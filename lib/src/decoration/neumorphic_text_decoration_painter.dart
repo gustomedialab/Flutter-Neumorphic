@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter/painting.dart';
 
+import '../shadow_rendering.dart';
 import '../theme/theme.dart';
 import 'cache/neumorphic_painter_cache.dart';
 import 'neumorphic_box_decoration_helper.dart';
@@ -42,12 +43,20 @@ class NeumorphicDecorationTextPainter extends BoxPainter {
   late ui.Paragraph _blackShadowTextMaskParagraph;
   late ui.Paragraph _gradientParagraph;
 
+  // Direct-draw shadow paints for the no-saveLayer fast path. The legacy
+  // renderer applies the shadow paint's alpha twice (paragraph foreground +
+  // saveLayer composite), so these carry the squared alpha.
+  late Paint _whiteShadowDirectPaint;
+  late Paint _blackShadowDirectPaint;
+
   void generatePainters() {
     this._backgroundPaint = Paint();
     this._whiteShadowPaint = Paint();
     this._whiteShadowMaskPaint = Paint()..blendMode = BlendMode.dstOut;
     this._blackShadowPaint = Paint();
     this._blackShadowMaskPaint = Paint()..blendMode = BlendMode.dstOut;
+    this._whiteShadowDirectPaint = Paint();
+    this._blackShadowDirectPaint = Paint();
     this._gradientPaint = Paint();
 
     this._borderPaint = Paint()
@@ -104,6 +113,8 @@ class NeumorphicDecorationTextPainter extends BoxPainter {
       if (invalidateDepth) {
         _blackShadowPaint..maskFilter = _cache.maskFilterBlur;
         _whiteShadowPaint..maskFilter = _cache.maskFilterBlur;
+        _whiteShadowDirectPaint..maskFilter = _cache.maskFilterBlur;
+        _blackShadowDirectPaint..maskFilter = _cache.maskFilterBlur;
       }
     }
 
@@ -118,85 +129,33 @@ class NeumorphicDecorationTextPainter extends BoxPainter {
           );
       if (invalidateShadowColors) {
         if (_cache.shadowLightColor != null) {
-          _whiteShadowPaint..color = _cache.shadowLightColor!;
+          final c = _cache.shadowLightColor!;
+          _whiteShadowPaint..color = c;
+          _whiteShadowDirectPaint..color = c.withValues(alpha: c.a * c.a);
         }
         if (_cache.shadowDarkColor != null) {
-          _blackShadowPaint..color = _cache.shadowDarkColor!;
+          final c = _cache.shadowDarkColor!;
+          _blackShadowPaint..color = c;
+          _blackShadowDirectPaint..color = c.withValues(alpha: c.a * c.a);
         }
       }
     }
 
-    final constraints = ui.ParagraphConstraints(width: _cache.width);
-    final paragraphStyle = textStyle.getParagraphStyle(
-        textDirection: TextDirection.ltr, textAlign: this.textAlign);
-
-    final textParagraphBuilder = ui.ParagraphBuilder(paragraphStyle)
-      ..pushStyle(ui.TextStyle(
-        foreground: _borderPaint,
-      ))
-      ..addText(text);
-
-    final innerTextParagraphBuilder = ui.ParagraphBuilder(paragraphStyle)
-      ..pushStyle(ui.TextStyle(
-        foreground: _backgroundPaint,
-      ))
-      ..addText(text);
-
-    final whiteShadowParagraphBuilder = ui.ParagraphBuilder(paragraphStyle)
-      ..pushStyle(ui.TextStyle(
-        foreground: _whiteShadowPaint,
-      ))
-      ..addText(text);
-
-    final whiteShadowMaskParagraphBuilder = ui.ParagraphBuilder(paragraphStyle)
-      ..pushStyle(ui.TextStyle(
-        foreground: _whiteShadowMaskPaint,
-      ))
-      ..addText(text);
-
-    final blackShadowParagraphBuilder = ui.ParagraphBuilder(paragraphStyle)
-      ..pushStyle(ui.TextStyle(
-        foreground: _blackShadowPaint,
-      ))
-      ..addText(text);
-
-    final blackShadowMaskParagraphBuilder = ui.ParagraphBuilder(paragraphStyle)
-      ..pushStyle(ui.TextStyle(
-        foreground: _blackShadowMaskPaint,
-      ))
-      ..addText(text);
-
-    _textParagraph = textParagraphBuilder.build()..layout(constraints);
-    _innerTextParagraph = innerTextParagraphBuilder.build()
-      ..layout(constraints);
-
-    _whiteShadowParagraph = whiteShadowParagraphBuilder.build()
-      ..layout(constraints);
-    _whiteShadowMaskParagraph = whiteShadowMaskParagraphBuilder.build()
-      ..layout(constraints);
-
-    _blackShadowTextParagraph = blackShadowParagraphBuilder.build()
-      ..layout(constraints);
-    _blackShadowTextMaskParagraph = blackShadowMaskParagraphBuilder.build()
-      ..layout(constraints);
-
-    //region gradient
-    final gradientParagraphBuilder = ui.ParagraphBuilder(paragraphStyle)
-      ..pushStyle(ui.TextStyle(
-        foreground: _gradientPaint
-          ..shader = getGradientShader(
-            gradientRect: Rect.fromLTRB(0, 0, _cache.width, _cache.height),
-            intensity: style.surfaceIntensity,
-            source: style.shape == NeumorphicShape.concave
-                ? this.style.lightSource
-                : this.style.lightSource.invert(),
-          ),
-      ))
-      ..addText(text);
-
-    _gradientParagraph = gradientParagraphBuilder.build()
-      ..layout(ui.ParagraphConstraints(width: _cache.width));
-    //endregion
+    // Building and laying out paragraphs is expensive; only rebuild when an
+    // input actually changed (previously this ran on EVERY paint).
+    final useDirectShadow = NeumorphicShadowRendering.useClipPath &&
+        _cache.backgroundColor.a >= 0.999;
+    if (!_paragraphsBuilt ||
+        _builtWithDirectShadow != useDirectShadow ||
+        invalidateSize ||
+        invalidateColor ||
+        invalidateDepth ||
+        invalidateShadowColors ||
+        invalidateLightSource) {
+      _paragraphsBuilt = true;
+      _builtWithDirectShadow = useDirectShadow;
+      _buildParagraphs(useDirectShadow: useDirectShadow);
+    }
 
     if (invalidateDepth || invalidateLightSource) {
       _cache.updateDepthOffset();
@@ -205,6 +164,46 @@ class NeumorphicDecorationTextPainter extends BoxPainter {
     if (invalidateLightSource || invalidateDepth || invalidateSize) {
       _cache.updateTranslations();
     }
+  }
+
+  bool _paragraphsBuilt = false;
+  bool _builtWithDirectShadow = false;
+  ui.Paragraph? _whiteShadowDirectParagraph;
+  ui.Paragraph? _blackShadowDirectParagraph;
+
+  void _buildParagraphs({required bool useDirectShadow}) {
+    final constraints = ui.ParagraphConstraints(width: _cache.width);
+    final paragraphStyle = textStyle.getParagraphStyle(
+        textDirection: TextDirection.ltr, textAlign: this.textAlign);
+
+    ui.Paragraph build(Paint foreground) {
+      final builder = ui.ParagraphBuilder(paragraphStyle)
+        ..pushStyle(ui.TextStyle(foreground: foreground))
+        ..addText(text);
+      return builder.build()..layout(constraints);
+    }
+
+    _textParagraph = build(_borderPaint);
+    _innerTextParagraph = build(_backgroundPaint);
+
+    if (useDirectShadow) {
+      _whiteShadowDirectParagraph = build(_whiteShadowDirectPaint);
+      _blackShadowDirectParagraph = build(_blackShadowDirectPaint);
+    } else {
+      _whiteShadowParagraph = build(_whiteShadowPaint);
+      _whiteShadowMaskParagraph = build(_whiteShadowMaskPaint);
+      _blackShadowTextParagraph = build(_blackShadowPaint);
+      _blackShadowTextMaskParagraph = build(_blackShadowMaskPaint);
+    }
+
+    _gradientParagraph = build(_gradientPaint
+      ..shader = getGradientShader(
+        gradientRect: Rect.fromLTRB(0, 0, _cache.width, _cache.height),
+        intensity: style.surfaceIntensity,
+        source: style.shape == NeumorphicShape.concave
+            ? this.style.lightSource
+            : this.style.lightSource.invert(),
+      ));
   }
 
   @override
@@ -252,6 +251,26 @@ class NeumorphicDecorationTextPainter extends BoxPainter {
   void _drawShadow(
       {required Canvas canvas, required Offset offset, required Path path}) {
     if (style.depth != null && style.depth!.abs() >= 0.1) {
+      if (_builtWithDirectShadow) {
+        // Fast path (opaque text fill): the legacy dstOut mask only erases
+        // the glyph interiors, which the opaque fill repaints anyway — so
+        // draw the blurred shadow glyphs directly, no saveLayer, no mask.
+        canvas
+          ..save()
+          ..translate(offset.dx + _cache.depthOffset.dx,
+              offset.dy + _cache.depthOffset.dy)
+          ..drawParagraph(_whiteShadowDirectParagraph!, Offset.zero)
+          ..restore();
+
+        canvas
+          ..save()
+          ..translate(offset.dx - _cache.depthOffset.dx,
+              offset.dy - _cache.depthOffset.dy)
+          ..drawParagraph(_blackShadowDirectParagraph!, Offset.zero)
+          ..restore();
+        return;
+      }
+
       canvas
         ..saveLayer(_cache.layerRect, _whiteShadowPaint)
         ..translate(offset.dx + _cache.depthOffset.dx,
@@ -276,6 +295,16 @@ class NeumorphicDecorationTextPainter extends BoxPainter {
       {required Canvas canvas, required Offset offset, required Path path}) {
     if (style.shape == NeumorphicShape.concave ||
         style.shape == NeumorphicShape.convex) {
+      if (NeumorphicShadowRendering.useClipPath) {
+        // The gradient paragraph already carries the gradient shader as its
+        // glyph foreground; the surrounding saveLayer was pure overhead.
+        canvas
+          ..save()
+          ..translate(offset.dx, offset.dy)
+          ..drawParagraph(_gradientParagraph, Offset.zero)
+          ..restore();
+        return;
+      }
       canvas
         ..saveLayer(_cache.layerRect, _gradientPaint)
         ..translate(offset.dx, offset.dy)

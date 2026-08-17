@@ -6,6 +6,7 @@
 * Replaced the broken test stub with real widget smoke tests (`flutter test` now passes).
 * Performance: cache the concave/convex gradient shader and the emboss shadow mask paths across paints (previously recreated every frame); remove stray debug prints from decoration lerp.
 * Performance: clip-based shadow rendering replaces the saveLayer + dstOut mask technique (four offscreen render passes per widget eliminated). Guarded by `NeumorphicShadowRendering.useClipPath` (default on). On-device (iPhone 15 Pro, profile mode, production data): median raster time during scroll 2.22ms -> 1.97ms (p50), 2.75ms -> 2.44ms (p90), ~11% faster; pixel parity with the legacy renderer verified to max channel delta 4/255.
+* Performance: NeumorphicText/NeumorphicIcon painter no longer rebuilds and lays out its 7 paragraphs on every paint (2.8x faster steady-state repaints); the gradient saveLayer is removed (the glyph foreground shader already carries it); shadow saveLayer+mask passes are skipped for opaque text fills (blurred glyphs drawn directly, squared-alpha parity). Translucent fills keep the legacy path, verified byte-identical.
 * Requires Flutter 3.47 / Dart 3.13 or later.
 
 ## 3.3.2
